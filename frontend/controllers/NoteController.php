@@ -11,6 +11,7 @@ use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\authclient\OAuthToken;
 
 /**
  * NoteController implements the CRUD actions for Note model.
@@ -46,17 +47,61 @@ class NoteController extends Controller
      * @return mixed
      */
     public function actionIndex()
-    {
+    {  
+        $client = Yii::$app->authClientCollection->getClient('vkontakte');
+        $userToken = Yii::$app->user->identity->token;
+        
+        if(!empty($userToken)) {
+            $oauthToken = new OAuthToken();
+            $oauthToken->setToken($userToken);
+            if($oauthToken->getIsExpired())
+            {
+                $oauthToken = $client->refreshAccessToken($oauthToken);
+                Yii::$app->user->identity->updateAttributes(['token' => $oauthToken->getToken()]);
+            }
+            
+            $vkNotesProvider = new ArrayDataProvider([
+                'allModels' => Yii::$app->user->identity->getVkontakteNotes(),
+                'pagination' => false,            
+            ]);
+
+            $button = ['id' => 'vk-disconnect', 'text' => Yii::t('app', 'VK disconnect'), 'link' => '/note/vkontakte-disconnect'];   
+        }
+        else {
+            if(!isset($_GET['code'])) {
+                $vkNotesProvider = new ArrayDataProvider([
+                    'allModels' => false,
+                    'pagination' => false,            
+                ]);
+                
+                $button = ['id' => 'vk-connect', 'text' => Yii::t('app', 'VK connect'), 'link' => $client->buildAuthUrl()];
+            }
+            else {
+                $token = $client->fetchAccessToken($_GET['code']);
+                Yii::$app->user->identity->updateAttributes(['token' => $token->getToken()]); 
+                
+                $vkNotesProvider = new ArrayDataProvider([
+                    'allModels' => Yii::$app->user->identity->getVkontakteNotes(),
+                    'pagination' => false,            
+                ]);
+                
+                $button = ['id' => 'vk-disconnect', 'text' => Yii::t('app', 'VK disconnect'), 'link' => '/note/vkontakte-disconnect'];
+            }            
+        }
+       
         return $this->render('index', [
             'dataProvider' => new ArrayDataProvider([
                 'allModels' => Yii::$app->user->identity->getNotesList(),
                 'pagination' => false,            
             ]),
-            'vkNotesProvider' => new ArrayDataProvider([
-                'allModels' => Yii::$app->user->identity->getVkontakteNotes(),
-                'pagination' => false,            
-            ])
+            'vkNotesProvider' => $vkNotesProvider,
+            'button' => $button
         ]);
+    }
+    
+    public function actionVkontakteDisconnect()
+    {
+        return Yii::$app->user->identity->updateAttributes(['token' => null]);       
     }
 
     /**

@@ -80,8 +80,7 @@ class SiteController extends Controller
             'source_id' => $attributes['id'],
         ])->one();
 
-        if(!Yii::$app->user->isGuest) {
-            //Yii::$app->user->identity->accessToken = Json::encode($client->getAccessToken());
+        if(!Yii::$app->user->isGuest) {            
             if (!$auth) {
                 $auth = new Auth([
                     'user_id' => Yii::$app->user->id,
@@ -95,18 +94,6 @@ class SiteController extends Controller
         return false;
     }
     
-    public function actionConnectVkontakte() {
-        $client = Yii::$app->authClientCollection->getClient('vkontakte');
-        
-        /*$result = Yii::$app->runAction('site/auth', ['client' => $client]);
-        if($result){
-            die('Success!');
-        }
-        else {
-            die('Error!');
-        }*/       
-    }
-
     /**
      * Displays homepage.
      *
@@ -134,11 +121,7 @@ class SiteController extends Controller
         }
 
         $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) { 
-            $client = Yii::$app->authClientCollection->getClient('vkontakte');
-            //$accessToken = $client->authenticateUser($model->email, $model->password);
-            // Request failed with code: 401, message: {"error":"invalid_request","error_description":"This grant_type available only for approved applications"}
-            
+        if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
         } else {
             return $this->render('login', [

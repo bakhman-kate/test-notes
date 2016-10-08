@@ -47,7 +47,7 @@ return [
                 '<controller:\w+>/<action:\w+>/<id:\d+>'=>'<controller>/<action>',
                 '<controller:\w+>/<action:\w+>'=>'<controller>/<action>',
                 [
-                    'pattern' => '<action:(about|contact|signup|login|logout|cabinet)>',
+                    'pattern' => '<action:(about|contact|signup|login|logout|cabinet|auth)>',
                     'route' => 'site/<action>',                    
                 ]
             ],
@@ -64,7 +64,8 @@ return [
                 'vkontakte' => [
                     'class' => 'yii\authclient\clients\VKontakte',
                     'clientId' => '5657839',
-                    'clientSecret' => 'Bd2nmBrVTNTNR5dfLPaH'                    
+                    'clientSecret' => 'Bd2nmBrVTNTNR5dfLPaH',
+                    'scope' => 'notes'
                 ],
             ],
         ],        

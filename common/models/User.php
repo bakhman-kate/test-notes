@@ -11,6 +11,7 @@ use yii\helpers\Json;
 use yii\web\IdentityInterface;
 use yii\web\Response;
 use common\models\Note;
+use yii\authclient\OAuthToken;
 
 /**
  * User model
@@ -277,31 +278,21 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $notes = false;
         
-        $data = [
-            'count' => 12,
-            'items' => [
-                [
-                    'id' => 11801953,
-                    'owner_id' => 66748,
-                    'comments' => 0,
-                    'date' => 1437379505,
-                    'title' => 'Без названия',
-                    'text' => 'Текст',
-                    'view_url' => 'https://m.vk.com/'
-                ]
-            ]
-        ];
-        $response = json_encode($data);
-        
         $vk = Yii::$app->authClientCollection->getClient('vkontakte');
-        //$vk->setAccessToken(Json::decode($this->token));
-        //$response = $vk->post('notes.get', []); // ['note_ids' => [], 'user_id' => 66748 
+        $oauthToken = new OAuthToken();
+        $oauthToken->setToken($this->token);
+        $vk->setAccessToken($oauthToken);
+        $response = $vk->api('notes.get')['response'];
         
-        $response = json_decode($response, true);
-        if(array_key_exists('items', $response)) {
-            $notes = (!empty($response["items"])) ? $response["items"] : [];
+        if(is_array($response)) {
+            $notes = [];
+            foreach($response as $note) {
+                if(is_array($note)){
+                    $notes[] = $note;
+                }
+            }
         }
-         
+        
         return $notes;
     }
 }

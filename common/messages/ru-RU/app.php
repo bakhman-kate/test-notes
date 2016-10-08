@@ -152,4 +152,5 @@ return [
     'The combination of Name and User ID has already been taken.' => 'Категория с указанным именем уже создана для данного пользователя.',
     'Incorrect email or password.' => 'Неправильный E-mail или пароль.',
     'VK connect' => 'Подключить ВКонтакте',
+    'VK disconnect' => 'Отключить ВКонтакте',
 ];
